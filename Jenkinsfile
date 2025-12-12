@@ -2,27 +2,26 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                checkout scm
+                git branch: 'main',
+                    url: 'https://github.com/Kururyk1/devops-midterm.git'
             }
         }
 
-        stage('Build') {
+        stage('Build JAR') {
             steps {
-                sh './mvnw clean package -DskipTests'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Archive Artifact') {
+        stage('Upload to Nexus') {
             steps {
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            }
-        }
-
-        stage('Success') {
-            steps {
-                echo '✅ Build completed successfully!'
+                sh '''
+                curl -u admin:admin123 \
+                --upload-file target/demo-0.0.1-SNAPSHOT.jar \
+                http://nexus:8081/repository/maven-releases/demo-0.0.1-SNAPSHOT.jar
+                '''
             }
         }
     }
